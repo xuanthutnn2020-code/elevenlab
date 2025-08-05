@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs Text-to-Speech</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 ElevenLabs Text-to-Speech</h1>
+            <p>Chuyển đổi văn bản thành giọng nói chất lượng cao với AI</p>
+        </div>
+
+        <div class="main-content">
+            <!-- API Key Section -->
+            <div class="section">
+                <h2>🔑 Cấu hình API</h2>
+                <div class="form-group">
+                    <label for="apiKey">ElevenLabs API Key:</label>
+                    <input type="password" id="apiKey" class="form-control" placeholder="Nhập API key của bạn...">
+                    <small style="color: #6c757d; margin-top: 5px; display: block;">
+                        Lấy API key tại: <a href="https://elevenlabs.io/speech-synthesis" target="_blank">elevenlabs.io</a>
+                    </small>
+                </div>
+                <button id="validateKey" class="btn btn-primary">Xác thực API Key</button>
+                
+                <div id="keyStatus" class="error"></div>
+                <div id="keySuccess" class="success"></div>
+            </div>
+
+            <!-- Voice Selection Section -->
+            <div class="section">
+                <h2>🎤 Chọn giọng đọc</h2>
+                <div class="form-group">
+                    <label for="voiceSelect">Giọng đọc:</label>
+                    <select id="voiceSelect" class="form-control" disabled>
+                        <option value="">Vui lòng xác thực API key trước</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="languageFilter">Lọc theo ngôn ngữ:</label>
+                    <select id="languageFilter" class="form-control" disabled>
+                        <option value="all">Tất cả ngôn ngữ</option>
+                        <option value="en">Tiếng Anh</option>
+                        <option value="vi">Tiếng Việt</option>
+                    </select>
+                </div>
+
+                <div id="voiceInfo" class="voice-info"></div>
+            </div>
+
+            <!-- Voice Settings Section -->
+            <div class="section">
+                <h2>⚙️ Cài đặt giọng nói</h2>
+                <div class="controls-grid">
+                    <div class="slider-group">
+                        <label>
+                            Tốc độ (Speed):
+                            <span class="slider-value" id="speedValue">1.0</span>
+                        </label>
+                        <input type="range" id="speed" class="slider" min="0.25" max="4.0" step="0.05" value="1.0">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            Độ ổn định (Stability):
+                            <span class="slider-value" id="stabilityValue">0.5</span>
+                        </label>
+                        <input type="range" id="stability" class="slider" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            Độ tương tự (Similarity):
+                            <span class="slider-value" id="similarityValue">0.75</span>
+                        </label>
+                        <input type="range" id="similarity" class="slider" min="0" max="1" step="0.01" value="0.75">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            Phong cách (Style):
+                            <span class="slider-value" id="styleValue">0.0</span>
+                        </label>
+                        <input type="range" id="style" class="slider" min="0" max="1" step="0.01" value="0.0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Input Section -->
+            <div class="section">
+                <h2>📝 Văn bản cần chuyển đổi</h2>
+                <div class="form-group">
+                    <label for="textInput">Nhập văn bản:</label>
+                    <textarea id="textInput" class="form-control text-input" 
+                              placeholder="Nhập văn bản bạn muốn chuyển đổi thành giọng nói...
+                              
+Ví dụ:
+- Xin chào, tôi là trợ lý AI của bạn.
+- Hello, I am your AI assistant."></textarea>
+                    <small style="color: #6c757d; margin-top: 5px; display: block;">
+                        Tối đa 5000 ký tự. Hỗ trợ cả tiếng Việt và tiếng Anh.
+                    </small>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="generateSpeech" class="btn btn-primary" disabled>
+                        🎵 Tạo giọng nói
+                    </button>
+                </div>
+
+                <div id="generateError" class="error"></div>
+                <div id="generateSuccess" class="success"></div>
+            </div>
+
+            <!-- Loading Section -->
+            <div id="loadingSection" class="loading">
+                <div class="spinner"></div>
+                <p>Đang tạo giọng nói, vui lòng đợi...</p>
+            </div>
+
+            <!-- Audio Player Section -->
+            <div id="audioSection" class="section" style="display: none;">
+                <h2>🎧 Nghe thử và tải xuống</h2>
+                <div class="audio-player">
+                    <audio id="audioPlayer" controls>
+                        Trình duyệt của bạn không hỗ trợ audio.
+                    </audio>
+                </div>
+                
+                <div class="download-section">
+                    <button id="downloadBtn" class="btn btn-success">
+                        📥 Tải xuống MP3
+                    </button>
+                    <p style="margin-top: 10px; color: #6c757d;">
+                        File âm thanh đã được tạo thành công!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Instructions Section -->
+            <div class="section">
+                <h2>📋 Hướng dẫn sử dụng</h2>
+                <ol style="line-height: 1.8; color: #495057;">
+                    <li><strong>Lấy API Key:</strong> Truy cập <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a>, đăng ký tài khoản và lấy API key</li>
+                    <li><strong>Nhập API Key:</strong> Dán API key vào ô trên và nhấn "Xác thực API Key"</li>
+                    <li><strong>Chọn giọng:</strong> Chọn giọng đọc phù hợp từ danh sách (có cả tiếng Việt và tiếng Anh)</li>
+                    <li><strong>Điều chỉnh:</strong> Tùy chỉnh tốc độ, độ ổn định, độ tương tự và phong cách</li>
+                    <li><strong>Nhập văn bản:</strong> Gõ hoặc dán văn bản cần chuyển đổi</li>
+                    <li><strong>Tạo giọng nói:</strong> Nhấn nút "Tạo giọng nói" và đợi xử lý</li>
+                    <li><strong>Tải xuống:</strong> Nghe thử và tải file MP3 về máy</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
