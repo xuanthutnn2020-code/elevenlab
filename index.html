@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElevenLabs Text-to-Speech</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section h2::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #4facfe;
+            border-radius: 50%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .form-control:disabled {
+            background: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(86, 171, 47, 0.3);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .slider-group {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            background: #4facfe;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e9ecef;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .text-input {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .audio-player {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .voice-info {
+            margin-top: 15px;
+        }
+
+        .voice-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .voice-card.selected {
+            border-color: #4facfe;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.15);
+        }
+
+        .voice-card h4 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .voice-card p {
+            color: #495057;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .voice-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .voice-card strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .model-info {
+            margin-top: 15px;
+        }
+
+        .model-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .model-card.selected {
+            border-color: #4facfe;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.15);
+        }
+
+        .model-card h4 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .model-card p {
+            color: #495057;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .model-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .model-card strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .status-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(79, 172, 254, 0.1);
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .voice-count {
+            font-weight: 600;
+            color: #4facfe;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .preset-voices {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .preset-voice-btn {
+            padding: 5px 10px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .preset-voice-btn:hover {
+            background: #f0f8ff;
+            border-color: #4facfe;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 ElevenLabs Text-to-Speech</h1>
+            <p>Chuyển đổi văn bản thành giọng nói chất lượng cao với AI</p>
+        </div>
+
+        <div class="main-content">
+            <!-- API Key Section -->
+            <div class="section">
+                <h2>🔑 Cấu hình API</h2>
+                <div class="form-group">
+                    <label for="apiKey">ElevenLabs API Key:</label>
+                    <input type="password" id="apiKey" class="form-control" placeholder="Nhập API key của bạn...">
+                    <small style="color: #6c757d; margin-top: 5px; display: block;">
+                        Lấy API key tại: <a href="https://elevenlabs.io/speech-synthesis" target="_blank">elevenlabs.io</a>
+                    </small>
+                </div>
+                <button id="validateKey" class="btn btn-primary">Xác thực API Key</button>
+                
+                <div id="keyStatus" class="error"></div>
+                <div id="keySuccess" class="success"></div>
+            </div>
+
+            <!-- Voice Selection Section -->
+            <div class="section">
+                <h2>🎤 Chọn giọng đọc</h2>
+
+                <!-- Custom Voice ID Input -->
+                <div class="form-group">
+                    <label for="customVoiceId">Voice ID tùy chỉnh (tùy chọn):</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="customVoiceId" class="form-control"
+                               placeholder="Nhập Voice ID từ ElevenLabs (ví dụ: pNInz6obpgDQGcFmaJgB)"
+                               style="flex: 1;">
+                        <button id="addCustomVoice" class="btn btn-primary" disabled>Thêm giọng</button>
+                    </div>
+                    <small style="color: #6c757d; margin-top: 5px; display: block;">
+                        Tìm Voice ID tại: <a href="https://elevenlabs.io/voice-library" target="_blank">ElevenLabs Voice Library</a>
+                    </small>
+                    
+                    <!-- Preset popular voice IDs -->
+                    <div class="preset-voices">
+                        <small style="width: 100%; color: #6c757d; margin-bottom: 5px;">Giọng phổ biến:</small>
+                        <button class="preset-voice-btn" data-voice-id="pNInz6obpgDQGcFmaJgB">Adam (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="N2lVS1w4EtoT3dr4eOWO">Callum (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="IKne3meq5aSn9XLyUdCD">Charlie (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="XB0fDUnXU5powFXDhCwa">Charlotte (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="CYw3kZ02Hs0563khs1Fj">Dave (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="D38z5RcWu1voky8WS1ja">Fin (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="JBFqnCBsd6RMkjVDRZzb">George (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="2EiwWnXFnvU5JabPnv8n">Glinda (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="N2lVS1w4EtoT3dr4eOWO">Callum (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="TX3LPaxmHKxFdv7VOQHJ">Liam (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="pqHfZKP75CvOlQylNhV4">Bill (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="TxGEqnHWrfWFTfGW9XjX">Josh (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="VR6AewLTigWG4xSOukaG">Arnold (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="ErXwobaYiN019PkySvjV">Antoni (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="MF3mGyEYCl7XYWbV9V6O">Elli (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="ThT5KcBeYPX3keUQqHPh">Dorothy (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="29vD33N1CtxCmqQRPOHJ">Drew (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="SOYHLrjzK2X1ezoPC6cr">Harry (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="yoZ06aMxZJJ28mfd3POQ">Sam (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="AZnzlk1XvdvUeBnXmlld">Domi (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="EXAVITQu4vr4xnSDxMaL">Bella (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="21m00Tcm4TlvDq8ikWAM">Rachel (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="LcfcDJNUP1GQjkzn1xUU">Emily (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="XrExE9yKIg1WjnnlVkGX">Matilda (EN)</button>
+                        <button class="preset-voice-btn" data-voice-id="g5CIjZEefAph4nQFvHAz">River (EN)</button>
+                    </div>
+                </div>
+
+                <div class="filter-controls">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="languageFilter">Lọc theo ngôn ngữ:</label>
+                        <select id="languageFilter" class="form-control" disabled>
+                            <option value="all">Tất cả ngôn ngữ</option>
+                            <option value="en">Tiếng Anh</option>
+                            <option value="vi">Tiếng Việt</option>
+                            <option value="custom">Giọng tùy chỉnh</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="voiceSearch">Tìm kiếm giọng:</label>
+                        <input type="text" id="voiceSearch" class="form-control"
+                               placeholder="Tìm theo tên giọng..." disabled>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>&nbsp;</label>
+                        <button id="loadAllVoices" class="btn btn-primary" disabled style="width: 100%;">Tải tất cả giọng</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="voiceSelect">Giọng đọc:</label>
+                    <select id="voiceSelect" class="form-control" disabled>
+                        <option value="">Vui lòng xác thực API key trước</option>
+                    </select>
+                </div>
+
+                <div class="status-info">
+                    <span>Trạng thái: <span id="voiceStatus">Chưa tải</span></span>
+                    <span class="voice-count" id="voiceCount">0 giọng đọc</span>
+                </div>
+
+                <div id="voiceInfo" class="voice-info"></div>
+            </div>
+
+            <!-- AI Model Selection Section -->
+            <div class="section">
+                <h2>🤖 Chọn mô hình AI</h2>
+                <div class="form-group">
+                    <label for="modelSelect">Mô hình AI:</label>
+                    <select id="modelSelect" class="form-control">
+                        <option value="eleven_multilingual_v2">Multilingual V2 - Chuẩn (Hỗ trợ đa ngôn ngữ)</option>
+                        <option value="eleven_turbo_v2_5" selected>Turbo V2.5 - Nhanh & Tối ưu tiếng Việt ⭐</option>
+                        <option value="eleven_turbo_v2">Turbo V2 - Nhanh (Tiếng Anh tốt)</option>
+                        <option value="eleven_monolingual_v1">Monolingual V1 - Chất lượng cao (Chỉ tiếng Anh)</option>
+                        <option value="eleven_multilingual_v1">Multilingual V1 - Cũ (Đa ngôn ngữ)</option>
+                    </select>
+                    <small style="color: #6c757d; margin-top: 5px; display: block;">
+                        <strong>Khuyến nghị:</strong> Turbo V2.5 cho tiếng Việt, Multilingual V2 cho chất lượng tốt nhất
+                    </small>
+                </div>
+
+                <div id="modelInfo" class="model-info">
+                    <div class="model-card selected">
+                        <h4>🚀 Turbo V2.5 - Được khuyến nghị</h4>
+                        <p><strong>Ưu điểm:</strong> Tốc độ nhanh, tối ưu hóa đặc biệt cho tiếng Việt</p>
+                        <p><strong>Phù hợp:</strong> Ứng dụng thời gian thực, chatbot, trợ lý ảo</p>
+                        <p><strong>Độ trễ:</strong> Thấp (~300ms)</p>
+                        <p><strong>Chất lượng:</strong> Cao với tiếng Việt, rất tốt với tiếng Anh</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Settings Section -->
+            <div class="section">
+                <h2>⚙️ Cài đặt giọng nói</h2>
+                <div class="controls-grid">
+                    <div class="slider-group">
+                        <label>
+                            Tốc độ (Speed):
+                            <span class="slider-value" id="speedValue">1.0</span>
+                        </label>
+                        <input type="range" id="speed" class="slider" min="0.25" max="4.0" step="0.05" value="1.0">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            Độ ổn định (Stability):
+                            <span class="slider-value" id="stabilityValue">0.5</span>
+                        </label>
+                        <input type="range" id="stability" class="slider" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            Độ tương tự (Similarity):
+                            <span class="slider-value" id="similarityValue">0.75</span>
+                        </label>
+                        <input type="range" id="similarity" class="slider" min="0" max="1" step="0.01" value="0.75">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>
+                            Phong cách (Style):
+                            <span class="slider-value" id="styleValue">0.0</span>
+                        </label>
+                        <input type="range" id="style" class="slider" min="0" max="1" step="0.01" value="0.0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Input Section -->
+            <div class="section">
+                <h2>📝 Văn bản cần chuyển đổi</h2>
+                <div class="form-group">
+                    <label for="textInput">Nhập văn bản:</label>
+                    <textarea id="textInput" class="form-control text-input" 
+                              placeholder="Nhập văn bản bạn muốn chuyển đổi thành giọng nói...
+                              
+Ví dụ:
+- Xin chào, tôi là trợ lý AI của bạn.
+- Hello, I am your AI assistant."></textarea>
+                    <small style="color: #6c757d; margin-top: 5px; display: block;">
+                        Tối đa 5000 ký tự. Hỗ trợ cả tiếng Việt và tiếng Anh.
+                    </small>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="generateSpeech" class="btn btn-primary" disabled>
+                        🎵 Tạo giọng nói
+                    </button>
+                </div>
+
+                <div id="generateError" class="error"></div>
+                <div id="generateSuccess" class="success"></div>
+            </div>
+
+            <!-- Loading Section -->
+            <div id="loadingSection" class="loading">
+                <div class="spinner"></div>
+                <p>Đang tạo giọng nói, vui lòng đợi...</p>
+            </div>
+
+            <!-- Audio Player Section -->
+            <div id="audioSection" class="section" style="display: none;">
+                <h2>🎧 Nghe thử và tải xuống</h2>
+                <div class="audio-player">
+                    <audio id="audioPlayer" controls>
+                        Trình duyệt của bạn không hỗ trợ audio.
+                    </audio>
+                </div>
+                
+                <div class="download-section">
+                    <button id="downloadBtn" class="btn btn-success">
+                        📥 Tải xuống MP3
+                    </button>
+                    <p style="margin-top: 10px; color: #6c757d;">
+                        File âm thanh đã được tạo thành công!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Instructions Section -->
+            <div class="section">
+                <h2>📋 Hướng dẫn sử dụng</h2>
+                <ol style="line-height: 1.8; color: #495057;">
+                    <li><strong>Lấy API Key:</strong> Truy cập <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a>, đăng ký tài khoản và lấy API key</li>
+                    <li><strong>Nhập API Key:</strong> Dán API key vào ô trên và nhấn "Xác thực API Key"</li>
+                    <li><strong>Tải giọng đọc:</strong> Nhấn "Tải tất cả giọng" để có nhiều lựa chọn hơn</li>
+                    <li><strong>Chọn giọng:</strong> Chọn giọng đọc phù hợp từ danh sách hoặc thêm giọng tùy chỉnh</li>
+                    <li><strong>Điều chỉnh:</strong> Tùy chỉnh tốc độ, độ ổn định, độ tương tự và phong cách</li>
+                    <li><strong>Nhập văn bản:</strong> Gõ hoặc dán văn bản cần chuyển đổi</li>
+                    <li><strong>Tạo giọng nói:</strong> Nhấn nút "Tạo giọng nói" và đợi xử lý</li>
+                    <li><strong>Tải xuống:</strong> Nghe thử và nhấn nút "Tải xuống MP3" để lưu file về máy</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ElevenLabsTTS {
+            constructor() {
+                this.apiKey = '';
+                this.voices = [];
+                this.customVoices = [];
+                this.allVoices = [];
+                this.selectedVoice = null;
+                this.selectedModel = 'eleven_turbo_v2_5';
+                this.audioBlob = null;
+                this.allVoicesLoaded = false;
+
+                this.initializeElements();
+                this.bindEvents();
+                this.loadSettings();
+                this.updateModelInfo();
+            }
+
+            initializeElements() {
+                // API elements
+                this.apiKeyInput = document.getElementById('apiKey');
+                this.validateKeyBtn = document.getElementById('validateKey');
+                this.keyStatus = document.getElementById('keyStatus');
+                this.keySuccess = document.getElementById('keySuccess');
+
+                // Voice elements
+                this.customVoiceIdInput = document.getElementById('customVoiceId');
+                this.addCustomVoiceBtn = document.getElementById('addCustomVoice');
+                this.voiceSelect = document.getElementById('voiceSelect');
+                this.languageFilter = document.getElementById('languageFilter');
+                this.voiceSearch = document.getElementById('voiceSearch');
+                this.voiceInfo = document.getElementById('voiceInfo');
+                this.loadAllVoicesBtn = document.getElementById('loadAllVoices');
+                this.voiceStatus = document.getElementById('voiceStatus');
+                this.voiceCount = document.getElementById('voiceCount');
+
+                // Model elements
+                this.modelSelect = document.getElementById('modelSelect');
+                this.modelInfo = document.getElementById('modelInfo');
+
+                // Settings elements
+                this.speedSlider = document.getElementById('speed');
+                this.stabilitySlider = document.getElementById('stability');
+                this.similaritySlider = document.getElementById('similarity');
+                this.styleSlider = document.getElementById('style');
+
+                this.speedValue = document.getElementById('speedValue');
+                this.stabilityValue = document.getElementById('stabilityValue');
+                this.similarityValue = document.getElementById('similarityValue');
+                this.styleValue = document.getElementById('styleValue');
+
+                // Text and generation elements
+                this.textInput = document.getElementById('textInput');
+                this.generateBtn = document.getElementById('generateSpeech');
+                this.generateError = document.getElementById('generateError');
+                this.generateSuccess = document.getElementById('generateSuccess');
+
+                // Loading and audio elements
+                this.loadingSection = document.getElementById('loadingSection');
+                this.audioSection = document.getElementById('audioSection');
+                this.audioPlayer = document.getElementById('audioPlayer');
+                this.downloadBtn = document.getElementById('downloadBtn');
+            }
+
+            bindEvents() {
+                // API key validation
+                this.validateKeyBtn.addEventListener('click', () => this.validateApiKey());
+                this.apiKeyInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.validateApiKey();
+                });
+
+                // Custom voice ID
+                this.addCustomVoiceBtn.addEventListener('click', () => this.addCustomVoice());
+                this.customVoiceIdInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addCustomVoice();
+                });
+                this.customVoiceIdInput.addEventListener('input', () => this.validateCustomVoiceInput());
+
+                // Preset voice buttons
+                document.querySelectorAll('.preset-voice-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const voiceId = btn.dataset.voiceId;
+                        this.customVoiceIdInput.value = voiceId;
+                        if (this.apiKey) {
+                            this.addCustomVoice();
+                        }
+                    });
+                });
+
+                // Load all voices
+                this.loadAllVoicesBtn.addEventListener('click', () => this.loadAllVoices());
+
+                // Voice selection
+                this.voiceSelect.addEventListener('change', () => this.selectVoice());
+                this.languageFilter.addEventListener('change', () => this.filterVoices());
+                this.voiceSearch.addEventListener('input', () => this.searchVoices());
+
+                // Model selection
+                this.modelSelect.addEventListener('change', () => this.selectModel());
+
+                // Settings sliders
+                this.speedSlider.addEventListener('input', (e) => {
+                    this.speedValue.textContent = parseFloat(e.target.value).toFixed(2);
+                    this.saveSettings();
+                });
+
+                this.stabilitySlider.addEventListener('input', (e) => {
+                    this.stabilityValue.textContent = parseFloat(e.target.value).toFixed(2);
+                    this.saveSettings();
+                });
+
+                this.similaritySlider.addEventListener('input', (e) => {
+                    this.similarityValue.textContent = parseFloat(e.target.value).toFixed(2);
+                    this.saveSettings();
+                });
+
+                this.styleSlider.addEventListener('input', (e) => {
+                    this.styleValue.textContent = parseFloat(e.target.value).toFixed(2);
+                    this.saveSettings();
+                });
+
+                // Text generation
+                this.generateBtn.addEventListener('click', () => this.generateSpeech());
+                this.textInput.addEventListener('input', () => this.validateInput());
+
+                // Download
+                this.downloadBtn.addEventListener('click', () => this.downloadAudio());
+            }
+
+            selectModel() {
+                this.selectedModel = this.modelSelect.value;
+                this.updateModelInfo();
+                this.saveSettings();
+            }
+
+            updateModelInfo() {
+                const modelDescriptions = {
+                    'eleven_turbo_v2_5': {
+                        title: '🚀 Turbo V2.5 - Được khuyến nghị',
+                        advantages: 'Tốc độ nhanh, tối ưu hóa đặc biệt cho tiếng Việt',
+                        suitable: 'Ứng dụng thời gian thực, chatbot, trợ lý ảo',
+                        latency: 'Thấp (~300ms)',
+                        quality: 'Cao với tiếng Việt, rất tốt với tiếng Anh'
+                    },
+                    'eleven_multilingual_v2': {
+                        title: '🌍 Multilingual V2 - Chất lượng cao',
+                        advantages: 'Chất lượng âm thanh tốt nhất, hỗ trợ nhiều ngôn ngữ',
+                        suitable: 'Nội dung chuyên nghiệp, podcast, audiobook',
+                        latency: 'Trung bình (~500ms)',
+                        quality: 'Rất cao với tất cả ngôn ngữ'
+                    },
+                    'eleven_turbo_v2': {
+                        title: '⚡ Turbo V2 - Nhanh',
+                        advantages: 'Tốc độ cao, tối ưu cho tiếng Anh',
+                        suitable: 'Ứng dụng real-time, game, chatbot tiếng Anh',
+                        latency: 'Rất thấp (~200ms)',
+                        quality: 'Tốt với tiếng Anh, trung bình với ngôn ngữ khác'
+                    },
+                    'eleven_monolingual_v1': {
+                        title: '🎯 Monolingual V1 - Chuyên tiếng Anh',
+                        advantages: 'Chất lượng cao nhất cho tiếng Anh',
+                        suitable: 'Nội dung tiếng Anh chuyên nghiệp',
+                        latency: 'Cao (~800ms)',
+                        quality: 'Xuất sắc với tiếng Anh'
+                    },
+                    'eleven_multilingual_v1': {
+                        title: '📚 Multilingual V1 - Phiên bản cũ',
+                        advantages: 'Ổn định, hỗ trợ đa ngôn ngữ',
+                        suitable: 'Các dự án cần tính ổn định',
+                        latency: 'Cao (~1000ms)',
+                        quality: 'Trung bình với tất cả ngôn ngữ'
+                    }
+                };
+
+                const modelData = modelDescriptions[this.selectedModel];
+                if (modelData && this.modelInfo) {
+                    this.modelInfo.innerHTML = `
+                        <div class="model-card selected">
+                            <h4>${modelData.title}</h4>
+                            <p><strong>Ưu điểm:</strong> ${modelData.advantages}</p>
+                            <p><strong>Phù hợp:</strong> ${modelData.suitable}</p>
+                            <p><strong>Độ trễ:</strong> ${modelData.latency}</p>
+                            <p><strong>Chất lượng:</strong> ${modelData.quality}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            validateCustomVoiceInput() {
+                const voiceId = this.customVoiceIdInput.value.trim();
+                this.addCustomVoiceBtn.disabled = !voiceId || !this.apiKey;
+            }
+
+            async addCustomVoice() {
+                const voiceId = this.customVoiceIdInput.value.trim();
+
+                if (!voiceId) {
+                    this.showError(this.keyStatus, 'Vui lòng nhập Voice ID');
+                    return;
+                }
+
+                if (!this.apiKey) {
+                    this.showError(this.keyStatus, 'Vui lòng xác thực API key trước');
+                    return;
+                }
+
+                this.addCustomVoiceBtn.disabled = true;
+                this.addCustomVoiceBtn.textContent = 'Đang kiểm tra...';
+
+                try {
+                    const response = await fetch(`https://api.elevenlabs.io/v1/voices/${voiceId}`, {
+                        headers: {
+                            'xi-api-key': this.apiKey
+                        }
+                    });
+
+                    if (response.ok) {
+                        const voiceData = await response.json();
+
+                        // Check if voice already exists
+                        const existingVoice = this.allVoices.find(v => v.voice_id === voiceId);
+                        if (existingVoice) {
+                            this.showError(this.keyStatus, 'Giọng đọc này đã có trong danh sách');
+                            return;
+                        }
+
+                        // Add to custom voices
+                        const customVoice = {
+                            ...voiceData,
+                            isCustom: true,
+                            labels: {
+                                ...voiceData.labels,
+                                language: voiceData.labels?.language || 'unknown'
+                            }
+                        };
+
+                        this.customVoices.push(customVoice);
+                        this.allVoices.push(customVoice);
+
+                        this.populateVoices();
+                        this.showSuccess(this.keySuccess, `Đã thêm giọng "${voiceData.name}" thành công!`);
+                        this.customVoiceIdInput.value = '';
+                        this.saveCustomVoices();
+
+                    } else {
+                        throw new Error('Voice ID không hợp lệ hoặc không tồn tại');
+                    }
+                } catch (error) {
+                    this.showError(this.keyStatus, 'Lỗi thêm giọng tùy chỉnh: ' + error.message);
+                } finally {
+                    this.addCustomVoiceBtn.disabled = false;
+                    this.addCustomVoiceBtn.textContent = 'Thêm giọng';
+                }
+            }
+
+            async loadAllVoices() {
+                if (!this.apiKey) {
+                    this.showError(this.keyStatus, 'Vui lòng xác thực API key trước');
+                    return;
+                }
+
+                this.loadAllVoicesBtn.disabled = true;
+                this.loadAllVoicesBtn.textContent = 'Đang tải...';
+                this.voiceStatus.textContent = 'Đang tải tất cả giọng đọc...';
+
+                try {
+                    // Load both user voices and shared voices
+                    const [userVoicesResponse, sharedVoicesResponse] = await Promise.all([
+                        fetch('https://api.elevenlabs.io/v1/voices', {
+                            headers: { 'xi-api-key': this.apiKey }
+                        }),
+                        fetch('https://api.elevenlabs.io/v1/shared-voices', {
+                            headers: { 'xi-api-key': this.apiKey }
+                        })
+                    ]);
+
+                    const userData = await userVoicesResponse.json();
+                    const sharedData = await sharedVoicesResponse.json();
+
+                    // Combine all voices
+                    this.voices = userData.voices || [];
+                    const sharedVoices = sharedData.voices || [];
+                    
+                    // Mark shared voices
+                    const markedSharedVoices = sharedVoices.map(voice => ({
+                        ...voice,
+                        isShared: true,
+                        name: `${voice.name} (Shared)`
+                    }));
+
+                    this.allVoices = [...this.voices, ...markedSharedVoices, ...this.customVoices];
+                    this.allVoicesLoaded = true;
+
+                    this.populateVoices();
+                    this.voiceStatus.textContent = 'Đã tải tất cả giọng đọc';
+                    this.showSuccess(this.keySuccess, `Đã tải ${this.allVoices.length} giọng đọc từ ElevenLabs!`);
+
+                } catch (error) {
+                    this.showError(this.keyStatus, 'Lỗi tải giọng đọc: ' + error.message);
+                    this.voiceStatus.textContent = 'Lỗi tải giọng đọc';
+                } finally {
+                    this.loadAllVoicesBtn.disabled = false;
+                    this.loadAllVoicesBtn.textContent = 'Tải tất cả giọng';
+                }
+            }
+
+            async validateApiKey() {
+                const apiKey = this.apiKeyInput.value.trim();
+
+                if (!apiKey) {
+                    this.showError(this.keyStatus, 'Vui lòng nhập API key');
+                    return;
+                }
+
+                this.validateKeyBtn.disabled = true;
+                this.validateKeyBtn.textContent = 'Đang xác thực...';
+
+                try {
+                    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+                        headers: {
+                            'xi-api-key': apiKey
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.apiKey = apiKey;
+                        this.voices = data.voices;
+                        this.allVoices = [...this.voices, ...this.customVoices];
+
+                        this.hideError(this.keyStatus);
+                        this.showSuccess(this.keySuccess, 'API key hợp lệ! Đã tải ' + this.allVoices.length + ' giọng đọc cơ bản.');
+
+                        this.populateVoices();
+                        this.enableControls();
+                        this.saveApiKey();
+                        this.voiceStatus.textContent = 'Đã tải giọng cơ bản';
+                    } else {
+                        throw new Error('API key không hợp lệ');
+                    }
+                } catch (error) {
+                    this.showError(this.keyStatus, 'Lỗi xác thực API key: ' + error.message);
+                } finally {
+                    this.validateKeyBtn.disabled = false;
+                    this.validateKeyBtn.textContent = 'Xác thực API Key';
+                }
+            }
+
+            populateVoices() {
+                const sortedVoices = this.allVoices.sort((a, b) => {
+                    const aLang = a.labels?.language || 'unknown';
+                    const bLang = b.labels?.language || 'unknown';
+
+                    if (aLang === 'vi' && bLang !== 'vi') return -1;
+                    if (bLang === 'vi' && aLang !== 'vi') return 1;
+                    if (aLang === 'en' && bLang !== 'en' && bLang !== 'vi') return -1;
+                    if (bLang === 'en' && aLang !== 'en' && aLang !== 'vi') return 1;
+
+                    return a.name.localeCompare(b.name);
+                });
+
+                this.voiceSelect.innerHTML = '<option value="">Chọn giọng đọc...</option>';
+
+                sortedVoices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.value = voice.voice_id;
+                    
+                    let label = voice.name;
+                    if (voice.labels?.language) {
+                        label += ` (${this.getLanguageLabel(voice.labels.language)})`;
+                    }
+                    if (voice.isCustom) label += ' - Tùy chỉnh';
+                    if (voice.isShared) label += ' - Chia sẻ';
+                    
+                    option.textContent = label;
+                    option.dataset.voice = JSON.stringify(voice);
+                    this.voiceSelect.appendChild(option);
+                });
+
+                this.voiceCount.textContent = `${this.allVoices.length} giọng đọc`;
+                this.filterVoices();
+            }
+
+            getLanguageLabel(lang) {
+                const labels = {
+                    'en': 'English',
+                    'vi': 'Tiếng Việt',
+                    'es': 'Español',
+                    'fr': 'Français',
+                    'de': 'Deutsch',
+                    'it': 'Italiano',
+                    'pt': 'Português',
+                    'pl': 'Polski',
+                    'tr': 'Türkçe',
+                    'ru': 'Русский',
+                    'nl': 'Nederlands',
+                    'cs': 'Čeština',
+                    'ar': 'العربية',
+                    'zh': '中文',
+                    'ja': '日本語',
+                    'hi': 'हिन्दी',
+                    'ko': '한국어',
+                    'unknown': 'Không xác định'
+                };
+                return labels[lang] || lang || 'Không xác định';
+            }
+
+            filterVoices() {
+                const filter = this.languageFilter.value;
+                const searchTerm = this.voiceSearch.value.toLowerCase();
+                const options = this.voiceSelect.querySelectorAll('option');
+
+                options.forEach((option, index) => {
+                    if (index === 0) return;
+
+                    const voice = JSON.parse(option.dataset.voice || '{}');
+                    const voiceLang = voice.labels?.language || 'unknown';
+                    const voiceName = voice.name.toLowerCase();
+
+                    let showByLanguage = true;
+                    let showBySearch = true;
+
+                    if (filter === 'custom') {
+                        showByLanguage = voice.isCustom;
+                    } else if (filter !== 'all') {
+                        showByLanguage = voiceLang === filter;
+                    }
+
+                    if (searchTerm) {
+                        showBySearch = voiceName.includes(searchTerm);
+                    }
+
+                    option.style.display = (showByLanguage && showBySearch) ? '' : 'none';
+                });
+            }
+
+            searchVoices() {
+                this.filterVoices();
+            }
+
+            selectVoice() {
+                const selectedOption = this.voiceSelect.selectedOptions[0];
+                if (selectedOption && selectedOption.dataset.voice) {
+                    this.selectedVoice = JSON.parse(selectedOption.dataset.voice);
+                    this.displayVoiceInfo();
+                    this.validateInput();
+                }
+            }
+
+            displayVoiceInfo() {
+                if (!this.selectedVoice) {
+                    this.voiceInfo.innerHTML = '';
+                    return;
+                }
+
+                const voice = this.selectedVoice;
+                const labels = voice.labels || {};
+                
+                let badges = '';
+                if (voice.isCustom) badges += '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem; margin-left: 5px;">Tùy chỉnh</span>';
+                if (voice.isShared) badges += '<span style="background: #17a2b8; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem; margin-left: 5px;">Chia sẻ</span>';
+
+                this.voiceInfo.innerHTML = `
+                    <div class="voice-card selected">
+                        <h4>${voice.name}${badges}</h4>
+                        <p><strong>Voice ID:</strong> <code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px;">${voice.voice_id}</code></p>
+                        <p><strong>Ngôn ngữ:</strong> ${this.getLanguageLabel(labels.language)}</p>
+                        <p><strong>Giới tính:</strong> ${labels.gender || 'Không xác định'}</p>
+                        <p><strong>Độ tuổi:</strong> ${labels.age || 'Không xác định'}</p>
+                        <p><strong>Mô tả:</strong> ${labels.description || voice.description || 'Không có mô tả'}</p>
+                        <p><strong>Phù hợp:</strong> ${labels.use_case || 'Đa mục đích'}</p>
+                    </div>
+                `;
+            }
+
+            validateInput() {
+                const hasApiKey = !!this.apiKey;
+                const hasVoice = !!this.selectedVoice;
+                const hasText = this.textInput.value.trim().length > 0;
+                const textLength = this.textInput.value.length;
+
+                this.generateBtn.disabled = !(hasApiKey && hasVoice && hasText && textLength <= 5000);
+
+                if (textLength > 5000) {
+                    this.showError(this.generateError, `Văn bản quá dài (${textLength}/5000 ký tự)`);
+                } else {
+                    this.hideError(this.generateError);
+                }
+            }
+
+            async generateSpeech() {
+                const text = this.textInput.value.trim();
+
+                if (!text) {
+                    this.showError(this.generateError, 'Vui lòng nhập văn bản');
+                    return;
+                }
+
+                if (!this.selectedVoice) {
+                    this.showError(this.generateError, 'Vui lòng chọn giọng đọc');
+                    return;
+                }
+
+                this.generateBtn.disabled = true;
+                this.loadingSection.classList.add('show');
+                this.audioSection.style.display = 'none';
+                this.hideError(this.generateError);
+
+                try {
+                    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${this.selectedVoice.voice_id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'audio/mpeg',
+                            'Content-Type': 'application/json',
+                            'xi-api-key': this.apiKey
+                        },
+                        body: JSON.stringify({
+                            text: text,
+                            model_id: this.selectedModel,
+                            voice_settings: {
+                                stability: parseFloat(this.stabilitySlider.value),
+                                similarity_boost: parseFloat(this.similaritySlider.value),
+                                style: parseFloat(this.styleSlider.value),
+                                use_speaker_boost: true
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.detail?.message || `HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    this.audioBlob = await response.blob();
+                    this.displayAudio();
+                    this.showSuccess(this.generateSuccess, 'Tạo giọng nói thành công!');
+
+                } catch (error) {
+                    this.showError(this.generateError, 'Lỗi tạo giọng nói: ' + error.message);
+                } finally {
+                    this.generateBtn.disabled = false;
+                    this.loadingSection.classList.remove('show');
+                }
+            }
+
+            displayAudio() {
+                if (!this.audioBlob) return;
+
+                const audioUrl = URL.createObjectURL(this.audioBlob);
+                this.audioPlayer.src = audioUrl;
+                this.audioSection.style.display = 'block';
+
+                // Scroll to audio section
+                this.audioSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            downloadAudio() {
+                if (!this.audioBlob) {
+                    alert('Không có file âm thanh để tải xuống. Vui lòng tạo giọng nói trước.');
+                    return;
+                }
+
+                // Create download link
+                const url = URL.createObjectURL(this.audioBlob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Generate filename with timestamp and voice name
+                const timestamp = new Date().toISOString().slice(0,19).replace(/[:-]/g, '');
+                const voiceName = this.selectedVoice ? this.selectedVoice.name.replace(/[^a-zA-Z0-9]/g, '_') : 'voice';
+                a.download = `elevenlabs_${voiceName}_${timestamp}.mp3`;
+                
+                // Add to DOM, click, and remove
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Clean up the URL object
+                URL.revokeObjectURL(url);
+                
+                // Show success message
+                this.showSuccess(this.generateSuccess, 'File MP3 đã được tải xuống thành công!');
+            }
+
+            enableControls() {
+                this.voiceSelect.disabled = false;
+                this.languageFilter.disabled = false;
+                this.voiceSearch.disabled = false;
+                this.customVoiceIdInput.disabled = false;
+                this.loadAllVoicesBtn.disabled = false;
+                this.validateCustomVoiceInput();
+                this.validateInput();
+            }
+
+            showError(element, message) {
+                element.textContent = message;
+                element.classList.add('show');
+                // Auto hide after 10 seconds
+                setTimeout(() => element.classList.remove('show'), 10000);
+            }
+
+            hideError(element) {
+                element.classList.remove('show');
+            }
+
+            showSuccess(element, message) {
+                element.textContent = message;
+                element.classList.add('show');
+                setTimeout(() => element.classList.remove('show'), 5000);
+            }
+
+            saveSettings() {
+                const settings = {
+                    speed: this.speedSlider.value,
+                    stability: this.stabilitySlider.value,
+                    similarity: this.similaritySlider.value,
+                    style: this.styleSlider.value,
+                    selectedModel: this.selectedModel
+                };
+                
+                // Store in memory instead of localStorage (Claude.ai restriction)
+                this.savedSettings = settings;
+            }
+
+            saveCustomVoices() {
+                // Store in memory instead of localStorage (Claude.ai restriction)
+                this.savedCustomVoices = [...this.customVoices];
+            }
+
+            loadSettings() {
+                // Load from memory if available
+                if (this.savedSettings) {
+                    const settings = this.savedSettings;
+                    this.speedSlider.value = settings.speed || 1.0;
+                    this.stabilitySlider.value = settings.stability || 0.5;
+                    this.similaritySlider.value = settings.similarity || 0.75;
+                    this.styleSlider.value = settings.style || 0.0;
+                    this.selectedModel = settings.selectedModel || 'eleven_turbo_v2_5';
+
+                    this.speedValue.textContent = parseFloat(this.speedSlider.value).toFixed(2);
+                    this.stabilityValue.textContent = parseFloat(this.stabilitySlider.value).toFixed(2);
+                    this.similarityValue.textContent = parseFloat(this.similaritySlider.value).toFixed(2);
+                    this.styleValue.textContent = parseFloat(this.styleSlider.value).toFixed(2);
+
+                    if (this.modelSelect) {
+                        this.modelSelect.value = this.selectedModel;
+                    }
+                }
+
+                // Load custom voices from memory
+                if (this.savedCustomVoices) {
+                    this.customVoices = [...this.savedCustomVoices];
+                }
+            }
+
+            saveApiKey() {
+                // Store in memory instead of localStorage (Claude.ai restriction)
+                this.savedApiKey = this.apiKey;
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new ElevenLabsTTS();
+
+            // Add character counter to text input
+            const textInput = document.getElementById('textInput');
+            const charCounter = document.createElement('div');
+            charCounter.style.cssText = 'text-align: right; margin-top: 5px; font-size: 0.9rem; color: #6c757d;';
+            textInput.parentNode.appendChild(charCounter);
+
+            textInput.addEventListener('input', () => {
+                const length = textInput.value.length;
+                charCounter.textContent = `${length}/5000 ký tự`;
+                charCounter.style.color = length > 5000 ? '#dc3545' : '#6c757d';
+            });
+
+            // Initialize character counter
+            charCounter.textContent = '0/5000 ký tự';
+
+            // Add sample texts
+            const sampleTexts = [
+                "Xin chào! Tôi là trợ lý AI của bạn. Tôi có thể giúp bạn với nhiều công việc khác nhau.",
+                "Hello! I am your AI assistant. I can help you with various tasks and answer your questions.",
+                "Công nghệ trí tuệ nhân tạo đang phát triển rất nhanh và mang lại nhiều lợi ích cho cuộc sống.",
+                "Artificial intelligence technology is developing rapidly and bringing many benefits to our lives."
+            ];
+
+            // Add sample text buttons
+            const sampleSection = document.createElement('div');
+            sampleSection.style.cssText = 'margin-top: 10px;';
+            sampleSection.innerHTML = '<small style="color: #6c757d;">Văn bản mẫu:</small>';
+
+            sampleTexts.forEach((text, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = `Mẫu ${index + 1}`;
+                btn.style.cssText = 'margin: 5px 5px 0 0; padding: 5px 10px; border: 1px solid #dee2e6; background: white; border-radius: 5px; cursor: pointer; font-size: 0.8rem;';
+                btn.addEventListener('click', () => {
+                    textInput.value = text;
+                    textInput.dispatchEvent(new Event('input'));
+                });
+                sampleSection.appendChild(btn);
+            });
+
+            textInput.parentNode.appendChild(sampleSection);
+        });
+    </script>
+</body>
+</html>
