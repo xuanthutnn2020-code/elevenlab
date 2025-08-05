@@ -304,6 +304,48 @@ body {
     font-size: 0.9rem;
 }
 
+.model-info {
+    margin-top: 15px;
+}
+
+.model-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.model-card.selected {
+    border-color: #4facfe;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.15);
+}
+
+.model-card h4 {
+    color: #2c3e50;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.model-card p {
+    color: #495057;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.model-card p:last-child {
+    margin-bottom: 0;
+}
+
+.model-card strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
 .download-section {
     text-align: center;
     padding: 20px;
