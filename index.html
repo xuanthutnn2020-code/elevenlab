@@ -937,7 +937,6 @@ document.querySelectorAll('.preset-voice-btn').forEach(btn => {
     const raw = await res.json();
     const v = raw.voice ? raw.voice : raw;
 
-    // Nếu đã có thì chọn luôn
     const existed = this.allVoices.find(x => x.voice_id === (v.voice_id || voiceId));
     if (existed) {
       this.voiceSelect.value = existed.voice_id;
@@ -948,7 +947,6 @@ document.querySelectorAll('.preset-voice-btn').forEach(btn => {
       return existed;
     }
 
-    // Chuẩn hoá dữ liệu
     const lang = (v.labels && (v.labels.language || v.labels.lang))
       ? (v.labels.language || v.labels.lang) : 'custom';
 
@@ -964,7 +962,6 @@ document.querySelectorAll('.preset-voice-btn').forEach(btn => {
     this.allVoices = [...this.voices, ...this.customVoices];
     this.populateVoices();
 
-    // Chọn ngay giọng mới thêm
     this.voiceSelect.value = customVoice.voice_id;
     this.voiceSelect.dispatchEvent(new Event('change'));
     this.textInput.focus();
@@ -983,8 +980,6 @@ document.querySelectorAll('.preset-voice-btn').forEach(btn => {
   }
 }
 
-
-  
 
             async loadAllVoices() {
                 if (!this.apiKey) {
@@ -1481,6 +1476,7 @@ if (this.savedApiKeys && Array.isArray(this.savedApiKeys) && this.savedApiKeys.l
 </body>
 
 </html>
+
 
 
 
