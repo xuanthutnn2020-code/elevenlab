@@ -1098,14 +1098,16 @@ populateVoices() {
       return a.name.localeCompare(b.name);
     });
 
-  // ▼ Bổ sung kết xuất options + đếm số lượng
+  // render options
   this.voiceSelect.innerHTML = '<option value="">Chọn giọng đọc...</option>';
   sortedVoices.forEach(voice => {
     const option = document.createElement('option');
     option.value = voice.voice_id;
 
     let label = voice.name;
-    if (voice.labels?.language) label += ` (${this.getLanguageLabel(voice.labels.language)})`;
+    if (voice.labels && voice.labels.language) {
+      label += ` (${this.getLanguageLabel(voice.labels.language)})`;
+    }
     if (voice.isCustom) label += ' - Tùy chỉnh';
     if (voice.isShared) label += ' - Chia sẻ';
 
@@ -1116,9 +1118,8 @@ populateVoices() {
 
   this.voiceCount.textContent = `${this.allVoices.length} giọng đọc`;
   this.filterVoices();
-} // <-- PHẢI có dấu ngoặc đóng này
+} // <-- KẾT THÚC populateVoices()
 
-// Bây giờ mới tới hàm tiếp theo
 getLanguageLabel(lang) {
   const labels = {
     en: 'English', vi: 'Tiếng Việt', es: 'Español', fr: 'Français',
@@ -1130,38 +1131,39 @@ getLanguageLabel(lang) {
   return labels[lang] || lang || 'Không xác định';
 }
 
-            filterVoices() {
-                const filter = this.languageFilter.value;
-                const searchTerm = this.voiceSearch.value.toLowerCase();
-                const options = this.voiceSelect.querySelectorAll('option');
+filterVoices() {
+  const filter = this.languageFilter.value;
+  const searchTerm = this.voiceSearch.value.toLowerCase();
+  const options = this.voiceSelect.querySelectorAll('option');
 
-                options.forEach((option, index) => {
-                    if (index === 0) return;
+  options.forEach((option, index) => {
+    if (index === 0) return;
 
-                    const voice = JSON.parse(option.dataset.voice || '{}');
-                    const voiceLang = voice.labels?.language || 'unknown';
-                    const voiceName = voice.name.toLowerCase();
+    const voice = JSON.parse(option.dataset.voice || '{}');
+    const voiceLang = (voice.labels && voice.labels.language) ? voice.labels.language : 'unknown';
+    const voiceName = (voice.name || '').toLowerCase();
 
-                    let showByLanguage = true;
-                    let showBySearch = true;
+    let showByLanguage = true;
+    let showBySearch = true;
 
-                    if (filter === 'custom') {
-                        showByLanguage = voice.isCustom;
-                    } else if (filter !== 'all') {
-                        showByLanguage = voiceLang === filter;
-                    }
+    if (filter === 'custom') {
+      showByLanguage = !!voice.isCustom;
+    } else if (filter !== 'all') {
+      showByLanguage = voiceLang === filter;
+    }
 
-                    if (searchTerm) {
-                        showBySearch = voiceName.includes(searchTerm);
-                    }
+    if (searchTerm) {
+      showBySearch = voiceName.includes(searchTerm);
+    }
 
-                    option.style.display = (showByLanguage && showBySearch) ? '' : 'none';
-                });
-            }
+    option.style.display = (showByLanguage && showBySearch) ? '' : 'none';
+  });
+}
 
-            searchVoices() {
-                this.filterVoices();
-            }
+searchVoices() {
+  this.filterVoices();
+}
+
 
             selectVoice() {
                 const selectedOption = this.voiceSelect.selectedOptions[0];
@@ -1444,6 +1446,7 @@ if (this.savedApiKeys && Array.isArray(this.savedApiKeys) && this.savedApiKeys.l
 </body>
 
 </html>
+
 
 
 
