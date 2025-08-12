@@ -1198,7 +1198,8 @@ Ví dụ:
             }
 
             async generateSpeech() {
-                const text = this.textInput.value.trim();
+               let text = this.textInput.value.trim();
+                  text = text.replace(/\([^)]*\)/g, '').trim(); 
 
                 if (!text) {
                     this.showError(this.generateError, 'Vui lòng nhập văn bản');
@@ -1418,3 +1419,4 @@ Ví dụ:
 </body>
 
 </html>
+
