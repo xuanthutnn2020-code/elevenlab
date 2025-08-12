@@ -1082,7 +1082,8 @@ async validateApiKey() {
 }
 
 populateVoices() {
-  const sortedVoices = this.allVoices.map(v => {
+  const sortedVoices = this.allVoices
+    .map(v => {
       if (!v.labels) v.labels = {};
       if (!v.labels.language) v.labels.language = v.isCustom ? 'vi' : 'unknown';
       return v;
@@ -1097,48 +1098,7 @@ populateVoices() {
       return a.name.localeCompare(b.name);
     });
 
-  this.voiceSelect.innerHTML = '<option value="">Chọn giọng đọc...</option>';
-  sortedVoices.forEach(voice => {
-    const option = document.createElement('option');
-    option.value = voice.voice_id;
-    let label = voice.name;
-    if (voice.labels?.language) label += ` (${this.getLanguageLabel(voice.labels.language)})`;
-    if (voice.isCustom) label += ' - Tùy chỉnh';
-    if (voice.isShared) label += ' - Chia sẻ';
-    option.textContent = label;
-    option.dataset.voice = JSON.stringify(voice);
-    this.voiceSelect.appendChild(option);
-  });
-
-  this.voiceCount.textContent = `${this.allVoices.length} giọng đọc`;
-  this.filterVoices();
-}
-
-            );
-
-                this.voiceSelect.innerHTML = '<option value="">Chọn giọng đọc...</option>';
-
-                sortedVoices.forEach(voice => {
-                    const option = document.createElement('option');
-                    option.value = voice.voice_id;
-                    
-                    let label = voice.name;
-                    if (voice.labels?.language) {
-                        label += ` (${this.getLanguageLabel(voice.labels.language)})`;
-                    }
-                    if (voice.isCustom) label += ' - Tùy chỉnh';
-                    if (voice.isShared) label += ' - Chia sẻ';
-                    
-                    option.textContent = label;
-                    option.dataset.voice = JSON.stringify(voice);
-                    this.voiceSelect.appendChild(option);
-                });
-
-                this.voiceCount.textContent = `${this.allVoices.length} giọng đọc`;
-                this.filterVoices();
-            }
-
-            getLanguageLabel(lang) {
+             getLanguageLabel(lang) {
                 const labels = {
                     'en': 'English',
                     'vi': 'Tiếng Việt',
@@ -1476,6 +1436,7 @@ if (this.savedApiKeys && Array.isArray(this.savedApiKeys) && this.savedApiKeys.l
 </body>
 
 </html>
+
 
 
 
