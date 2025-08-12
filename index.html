@@ -1098,29 +1098,37 @@ populateVoices() {
       return a.name.localeCompare(b.name);
     });
 
-             getLanguageLabel(lang) {
-                const labels = {
-                    'en': 'English',
-                    'vi': 'Tiếng Việt',
-                    'es': 'Español',
-                    'fr': 'Français',
-                    'de': 'Deutsch',
-                    'it': 'Italiano',
-                    'pt': 'Português',
-                    'pl': 'Polski',
-                    'tr': 'Türkçe',
-                    'ru': 'Русский',
-                    'nl': 'Nederlands',
-                    'cs': 'Čeština',
-                    'ar': 'العربية',
-                    'zh': '中文',
-                    'ja': '日本語',
-                    'hi': 'हिन्दी',
-                    'ko': '한국어',
-                    'unknown': 'Không xác định'
-                };
-                return labels[lang] || lang || 'Không xác định';
-            }
+  // ▼ Bổ sung kết xuất options + đếm số lượng
+  this.voiceSelect.innerHTML = '<option value="">Chọn giọng đọc...</option>';
+  sortedVoices.forEach(voice => {
+    const option = document.createElement('option');
+    option.value = voice.voice_id;
+
+    let label = voice.name;
+    if (voice.labels?.language) label += ` (${this.getLanguageLabel(voice.labels.language)})`;
+    if (voice.isCustom) label += ' - Tùy chỉnh';
+    if (voice.isShared) label += ' - Chia sẻ';
+
+    option.textContent = label;
+    option.dataset.voice = JSON.stringify(voice);
+    this.voiceSelect.appendChild(option);
+  });
+
+  this.voiceCount.textContent = `${this.allVoices.length} giọng đọc`;
+  this.filterVoices();
+} // <-- PHẢI có dấu ngoặc đóng này
+
+// Bây giờ mới tới hàm tiếp theo
+getLanguageLabel(lang) {
+  const labels = {
+    en: 'English', vi: 'Tiếng Việt', es: 'Español', fr: 'Français',
+    de: 'Deutsch', it: 'Italiano', pt: 'Português', pl: 'Polski',
+    tr: 'Türkçe', ru: 'Русский', nl: 'Nederlands', cs: 'Čeština',
+    ar: 'العربية', zh: '中文', ja: '日本語', hi: 'हिन्दी', ko: '한국어',
+    unknown: 'Không xác định'
+  };
+  return labels[lang] || lang || 'Không xác định';
+}
 
             filterVoices() {
                 const filter = this.languageFilter.value;
@@ -1436,6 +1444,7 @@ if (this.savedApiKeys && Array.isArray(this.savedApiKeys) && this.savedApiKeys.l
 </body>
 
 </html>
+
 
 
 
