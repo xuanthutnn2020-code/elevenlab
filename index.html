@@ -711,6 +711,8 @@ Ví dụ:
         class ElevenLabsTTS {
             constructor() {
                 this.apiKey = '';
+                this.apiKeys = [];        // danh sách tất cả API keys
+                this.activeKeyIndex = 0;  // key đang dùng
                 this.voices = [];
                 this.customVoices = [];
                 this.allVoices = [];
@@ -912,16 +914,79 @@ document.querySelectorAll('.preset-voice-btn').forEach(btn => {
                 this.addCustomVoiceBtn.disabled = !voiceId || !this.apiKey;
             }
 
-         async addCustomVoice() {
+  async addCustomVoice() {
   const voiceId = this.customVoiceIdInput.value.trim();
   if (!voiceId) {
     this.showError(this.keyStatus, 'Vui lòng nhập Voice ID');
-    return;
+    return null;
   }
   if (!this.apiKey) {
     this.showError(this.keyStatus, 'Vui lòng xác thực API key trước');
-    return;
+    return null;
   }
+
+  this.addCustomVoiceBtn.disabled = true;
+  this.addCustomVoiceBtn.textContent = 'Đang kiểm tra...';
+
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/voices/${voiceId}`, {
+      headers: { 'xi-api-key': this.apiKey }
+    });
+    if (!res.ok) throw new Error('Voice ID không hợp lệ hoặc không tồn tại');
+
+    const raw = await res.json();
+    const v = raw.voice ? raw.voice : raw; // vài account trả về { voice: {...} }
+
+    // Nếu đã có trong danh sách thì chọn luôn
+    let existing = this.allVoices.find(x => x.voice_id === (v.voice_id || voiceId));
+    if (existing) {
+      this.voiceSelect.value = existing.voice_id;
+      this.voiceSelect.dispatchEvent(new Event('change'));
+      this.textInput.focus();
+      this.textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      this.showSuccess(this.keySuccess, `Đã chọn giọng "${existing.name}"`);
+      return existing;
+    }
+
+    // Chuẩn hoá dữ liệu giọng vừa lấy
+    const lang =
+      (v.labels && (v.labels.language || v.labels.lang)) ? (v.labels.language || v.labels.lang)
+      : 'custom';
+
+    const customVoice = {
+      voice_id: v.voice_id || voiceId,
+      name: v.name || `Custom ${voiceId.slice(0, 6)}`,
+      labels: { ...(v.labels || {}), language: lang },
+      description: v.description || '',
+      isCustom: true
+    };
+
+    // Thêm vào danh sách & render
+    this.customVoices.push(customVoice);
+    this.allVoices = [...this.voices, ...this.customVoices];
+    this.populateVoices();
+
+    // Chọn ngay giọng mới thêm + focus vào ô text
+    this.voiceSelect.value = customVoice.voice_id;
+    this.voiceSelect.dispatchEvent(new Event('change'));
+    this.textInput.focus();
+    this.textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    this.showSuccess(this.keySuccess, `Đã thêm giọng "${customVoice.name}" thành công!`);
+    this.customVoiceIdInput.value = '';
+    this.saveCustomVoices();
+
+    return customVoice;
+
+  } catch (e) {
+    this.showError(this.keyStatus, 'Lỗi thêm giọng tùy chỉnh: ' + e.message);
+    return null;
+  } finally {
+    this.addCustomVoiceBtn.disabled = false;
+    this.addCustomVoiceBtn.textContent = 'Thêm giọng';
+  }
+}
+
 
   this.addCustomVoiceBtn.disabled = true;
   this.addCustomVoiceBtn.textContent = 'Đang kiểm tra...';
@@ -1033,47 +1098,54 @@ document.querySelectorAll('.preset-voice-btn').forEach(btn => {
                 }
             }
 
-            async validateApiKey() {
-                const apiKey = this.apiKeyInput.value.trim();
+async validateApiKey() {
+  const rawKeys = this.apiKeyInput.value.trim();
+  if (!rawKeys) {
+    this.showError(this.keyStatus, 'Vui lòng nhập ít nhất 1 API key');
+    return;
+  }
 
-                if (!apiKey) {
-                    this.showError(this.keyStatus, 'Vui lòng nhập API key');
-                    return;
-                }
+  // Cắt thành mảng keys: tách theo dấu phẩy, xuống dòng, khoảng trắng
+  this.apiKeys = rawKeys.split(/[\s,;]+/).filter(k => k.length > 0);
+  this.activeKeyIndex = 0;
+  this.apiKey = this.apiKeys[this.activeKeyIndex]; // dùng key đầu tiên
 
-                this.validateKeyBtn.disabled = true;
-                this.validateKeyBtn.textContent = 'Đang xác thực...';
+  this.validateKeyBtn.disabled = true;
+  this.validateKeyBtn.textContent = 'Đang xác thực...';
 
-                try {
-                    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-                        headers: {
-                            'xi-api-key': apiKey
-                        }
-                    });
+  try {
+    // Dùng key hiện tại để test & tải voices
+    const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': this.apiKey }
+    });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.apiKey = apiKey;
-                        this.voices = data.voices;
-                        this.allVoices = [...this.voices, ...this.customVoices];
+    if (!response.ok) throw new Error('API key không hợp lệ');
 
-                        this.hideError(this.keyStatus);
-                        this.showSuccess(this.keySuccess, 'API key hợp lệ! Đã tải ' + this.allVoices.length + ' giọng đọc cơ bản.');
+    const data = await response.json();
+    this.voices = data.voices || [];
+    this.allVoices = [...this.voices, ...this.customVoices];
 
-                        this.populateVoices();
-                        this.enableControls();
-                        this.saveApiKey();
-                        this.voiceStatus.textContent = 'Đã tải giọng cơ bản';
-                    } else {
-                        throw new Error('API key không hợp lệ');
-                    }
-                } catch (error) {
-                    this.showError(this.keyStatus, 'Lỗi xác thực API key: ' + error.message);
-                } finally {
-                    this.validateKeyBtn.disabled = false;
-                    this.validateKeyBtn.textContent = 'Xác thực API Key';
-                }
-            }
+    this.hideError(this.keyStatus);
+    this.showSuccess(
+      this.keySuccess,
+      `Hợp lệ! Đã nạp ${this.allVoices.length} giọng. Keys tải: ${this.apiKeys.length}`
+    );
+
+    this.populateVoices();
+    this.enableControls();
+    this.voiceStatus.textContent = 'Đã tải giọng cơ bản';
+
+    // Lưu nhiều key
+    this.saveApiKeys();
+
+  } catch (error) {
+    this.showError(this.keyStatus, 'Lỗi xác thực API key: ' + error.message);
+  } finally {
+    this.validateKeyBtn.disabled = false;
+    this.validateKeyBtn.textContent = 'Xác thực API Key';
+  }
+}
+
 populateVoices() {
     const sortedVoices = this.allVoices.map(v => {
         // Nếu giọng custom chưa có language thì gán 'vi' hoặc 'custom'
@@ -1402,11 +1474,20 @@ populateVoices() {
                 if (this.savedCustomVoices) {
                     this.customVoices = [...this.savedCustomVoices];
                 }
+                // ▼ Thêm đoạn này để khôi phục nhiều API keys
+if (this.savedApiKeys && Array.isArray(this.savedApiKeys) && this.savedApiKeys.length > 0) {
+    this.apiKeys = [...this.savedApiKeys];
+    this.activeKeyIndex = this.savedActiveKeyIndex || 0;
+    if (this.activeKeyIndex >= this.apiKeys.length) this.activeKeyIndex = 0;
+    this.apiKey = this.apiKeys[this.activeKeyIndex];
+}
+
             }
 
             saveApiKey() {
                 // Store in memory instead of localStorage (Claude.ai restriction)
-                this.savedApiKey = this.apiKey;
+               this.savedApiKeys = [...this.apiKeys];
+  this.savedActiveKeyIndex = this.activeKeyIndex;
             }
         }
 
@@ -1459,6 +1540,7 @@ populateVoices() {
 </body>
 
 </html>
+
 
 
 
