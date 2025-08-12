@@ -785,16 +785,28 @@ Ví dụ:
                 });
                 this.customVoiceIdInput.addEventListener('input', () => this.validateCustomVoiceInput());
 
-                // Preset voice buttons
-                document.querySelectorAll('.preset-voice-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const voiceId = btn.dataset.voiceId;
-                        this.customVoiceIdInput.value = voiceId;
-                        if (this.apiKey) {
-                            this.addCustomVoice();
-                        }
-                    });
-                });
+               // Preset voice buttons (chọn và nhảy thẳng tới ô nhập văn bản)
+document.querySelectorAll('.preset-voice-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const voiceId = btn.dataset.voiceId;
+    this.customVoiceIdInput.value = voiceId;
+
+    if (!this.apiKey) {
+      this.showError(this.keyStatus, 'Vui lòng xác thực API key trước');
+      return;
+    }
+
+    // Thêm giọng (nếu chưa có) và tự chọn luôn
+    const v = await this.addCustomVoice(); // sẽ return voice nếu thêm thành công hoặc đã có
+    if (v) {
+      this.voiceSelect.value = v.voice_id;
+      this.voiceSelect.dispatchEvent(new Event('change'));
+      // Nhảy tới ô nhập văn bản để gõ ngay
+      this.textInput.focus();
+      this.textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+});
 
                 // Load all voices
                 this.loadAllVoicesBtn.addEventListener('click', () => this.loadAllVoices());
@@ -926,9 +938,9 @@ Ví dụ:
 
     // Check trùng lặp
     const exists = this.allVoices.find(x => x.voice_id === (v.voice_id || voiceId));
-    if (exists) {
+    if (existingvoice) {
       this.showError(this.keyStatus, 'Giọng đọc này đã có trong danh sách');
-      return;
+      return existingVoice;
     }
 
     // Chuẩn hóa dữ liệu
@@ -950,7 +962,8 @@ Ví dụ:
     this.populateVoices();
     this.showSuccess(this.keySuccess, `Đã thêm giọng "${customVoice.name}" thành công!`);
     this.customVoiceIdInput.value = '';
-
+      this.saveCustomVoices();
+           return customVoice; // Trả về voice vừa thêm
     // Tự chọn giọng vừa thêm
     this.voiceSelect.value = customVoice.voice_id;
     this.voiceSelect.dispatchEvent(new Event('change'));
@@ -1012,6 +1025,7 @@ Ví dụ:
 
                 } catch (error) {
                     this.showError(this.keyStatus, 'Lỗi tải giọng đọc: ' + error.message);
+                return null;
                     this.voiceStatus.textContent = 'Lỗi tải giọng đọc';
                 } finally {
                     this.loadAllVoicesBtn.disabled = false;
@@ -1445,5 +1459,6 @@ populateVoices() {
 </body>
 
 </html>
+
 
 
